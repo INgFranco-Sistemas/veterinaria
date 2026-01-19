@@ -37,11 +37,15 @@ class AuthController extends Controller
 
     public function me()
     {
+        $user = Auth::guard('api')->user();
+
         return response()->json([
-            'user' => Auth::guard('api')->user(),
+            'user' => $user,
+            'roles' => $user->getRoleNames(),
+            'permissions' => $user->getAllPermissions()->pluck('name'),
         ]);
     }
-
+    
     public function logout()
     {
         Auth::guard('api')->logout();

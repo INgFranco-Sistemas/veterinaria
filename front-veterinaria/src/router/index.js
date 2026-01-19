@@ -1,27 +1,27 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import PublicLayout from '@/layouts/PublicLayout.vue'
-import AdminLayout from '@/layouts/AdminLayout.vue'
+import { createRouter, createWebHistory } from "vue-router"
 
-import Home from '@/modules/public/pages/Home.vue'
-import Login from '@/modules/auth/pages/Login.vue'
-import Dashboard from '@/modules/admin/dashboard/pages/Dashboard.vue'
+import PublicLayout from "@/layouts/PublicLayout.vue"
+import AdminLayout from "@/layouts/AdminLayout.vue"
+
+import Home from "@/modules/public/pages/Home.vue"
+import Login from "@/modules/auth/pages/Login.vue"
+import Dashboard from "@/modules/admin/dashboard/pages/Dashboard.vue"
 
 const routes = [
   {
-    path: '/',
+    path: "/",
     component: PublicLayout,
     children: [
-      { path: '', name: 'home', component: Home },
-      { path: 'login', name: 'login', component: Login },
+      { path: "", name: "home", component: Home },
+      { path: "login", name: "login", component: Login },
     ],
   },
   {
-    path: '/admin',
+    path: "/admin",
     component: AdminLayout,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, roles: ["admin"] },
     children: [
-      { path: 'dashboard', name: 'admin.dashboard', component: Dashboard },
+      { path: "dashboard", name: "admin.dashboard", component: Dashboard },
     ],
   },
 ]
@@ -31,14 +31,23 @@ const router = createRouter({
   routes,
 })
 
+// ✅ Guard global: protege /admin
 router.beforeEach((to) => {
-  const auth = useAuthStore()
+  const token = localStorage.getItem("token")
+  const role = localStorage.getItem("role")
 
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    return { name: "login" }
+  // Debug (puedes borrarlo luego)
+  console.log("[GUARD]", {
+    to: to.fullPath,
+    token: !!token,
+    role,
+  })
+
+  // Solo proteger rutas admin
+  if (to.path.startsWith("/admin")) {
+    if (!token) return "/login"
+    if (role !== "admin") return "/"
   }
-
-  return true
 })
 
 export default router

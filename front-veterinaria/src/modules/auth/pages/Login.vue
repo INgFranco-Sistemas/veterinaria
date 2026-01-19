@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-md bg-white p-6 rounded shadow">
-      <h1 class="text-2xl font-bold mb-6">Iniciar sesión</h1>
+  <div class="min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="w-full max-w-md bg-white p-6 rounded-xl shadow">
+      <h1 class="text-2xl font-bold mb-6 text-center">Iniciar sesión</h1>
 
       <form @submit.prevent="onSubmit" class="space-y-4">
         <div>
@@ -33,7 +33,7 @@
         </button>
       </form>
 
-      <p v-if="error" class="text-red-600 mt-4 text-sm">
+      <p v-if="error" class="text-red-600 mt-4 text-sm text-center">
         {{ error }}
       </p>
     </div>
@@ -62,9 +62,7 @@ const onSubmit = async () => {
   loading.value = true
 
   try {
-    // 👇 AJUSTA si tu backend está en otro puerto/ruta
     const url = "http://127.0.0.1:8000/api/auth/login"
-
     console.log("POST →", url)
 
     const res = await axios.post(url, form, {
@@ -73,13 +71,21 @@ const onSubmit = async () => {
 
     console.log("RESPUESTA ✅", res.data)
 
-    // Guardar token si viene como access_token
+    // ✅ Guardar token y rol
     if (res.data?.access_token) {
       localStorage.setItem("token", res.data.access_token)
+      localStorage.setItem("role", res.data.user?.role || "")
     }
 
-    // ir al dashboard
+    console.log("GUARDADO token?", !!localStorage.getItem("token"))
+    console.log("GUARDADO role:", localStorage.getItem("role"))
+
+    // ✅ Redirigir a dashboard (ruta ABSOLUTA)
+    // Opción A (por path):
     router.push("/admin/dashboard")
+
+    // Opción B (por name, más seguro):
+    // router.push({ name: "admin.dashboard" })
   } catch (e) {
     console.error("ERROR ❌", e)
     error.value =
