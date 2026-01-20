@@ -13,7 +13,7 @@ export const useAuthStore = defineStore("auth", {
     isAuthenticated: (state) => !!state.token,
     hasRole: (state) => (role) => state.roles.includes(role),
     can: (state) => (perm) => state.permissions.includes(perm),
-    },
+  },
 
   actions: {
     setToken(token) {
@@ -30,23 +30,22 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async login(credentials) {
-      const { data } = await api.post("/api/auth/login", credentials)
+      const { data } = await api.post("/auth/login", credentials) // ✅
       this.setToken(data.token)
       this.user = data.user
       return data
     },
 
     async fetchMe() {
-      const { data } = await api.get("/api/auth/me")
+      const { data } = await api.get("/auth/me") // ✅
       this.user = data.user
       this.roles = data.roles || []
       this.permissions = data.permissions || []
       return data
     },
 
-
     async refreshToken() {
-      const { data } = await api.post("/api/auth/refresh")
+      const { data } = await api.post("/auth/refresh") // ✅
       this.setToken(data.token)
       this.user = data.user
       return data
@@ -54,7 +53,7 @@ export const useAuthStore = defineStore("auth", {
 
     async logout() {
       try {
-        await api.post("/api/auth/logout")
+        await api.post("/auth/logout") // ✅
       } finally {
         this.clearAuth()
       }

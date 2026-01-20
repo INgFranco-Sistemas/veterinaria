@@ -6,6 +6,8 @@ import AdminLayout from "@/layouts/AdminLayout.vue"
 import Home from "@/modules/public/pages/Home.vue"
 import Login from "@/modules/auth/pages/Login.vue"
 import Dashboard from "@/modules/admin/dashboard/pages/Dashboard.vue"
+import VetsIndex from "@/modules/admin/vets/pages/VetsIndex.vue"
+import VetsForm from "@/modules/admin/vets/pages/VetsForm.vue"
 
 const routes = [
   {
@@ -21,7 +23,29 @@ const routes = [
     component: AdminLayout,
     meta: { requiresAuth: true, roles: ["admin"] },
     children: [
-      { path: "dashboard", name: "admin.dashboard", component: Dashboard },
+      { 
+        path: "dashboard", 
+        name: "admin.dashboard", 
+        component: Dashboard 
+      },
+      {
+        path: 'veterinarios',
+        name: 'admin.vets.index',
+        component: VetsIndex,
+        meta: { requiresAuth: true, roles: ["admin"], permission: "vets.view" },
+      },
+      {
+        path: 'veterinarios/nuevo',
+        name: 'admin.vets.create',
+        component: VetsForm,
+        meta: { requiresAuth: true, roles: ["admin"], permission: "vets.create" },
+      },
+      {
+        path: 'veterinarios/:id/editar',
+        name: 'admin.vets.edit',
+        component: VetsForm,
+        meta: { requiresAuth: true, roles: ["admin"], permission: "vets.update" },
+      },
     ],
   },
 ]
@@ -36,18 +60,15 @@ router.beforeEach((to) => {
   const token = localStorage.getItem("token")
   const role = localStorage.getItem("role")
 
-  // Debug (puedes borrarlo luego)
   console.log("[GUARD]", {
     to: to.fullPath,
     token: !!token,
     role,
   })
 
-  // Solo proteger rutas admin
   if (to.path.startsWith("/admin")) {
     if (!token) return "/login"
     if (role !== "admin") return "/"
   }
 })
-
 export default router

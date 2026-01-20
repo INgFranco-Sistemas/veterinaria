@@ -1,33 +1,17 @@
 import axios from "axios"
-import { useAuthStore } from "@/stores/auth"
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "http://127.0.0.1:8000/api",
   headers: {
     Accept: "application/json",
-    "Content-Type": "application/json",
   },
 })
 
-// Interceptor: adjunta token si existe
+// ✅ Adjunta token automáticamente
 api.interceptors.request.use((config) => {
-  const auth = useAuthStore()
-  if (auth.token) {
-    config.headers.Authorization = `Bearer ${auth.token}`
-  }
+  const token = localStorage.getItem("token")
+  if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
-
-// Interceptor: si token expira / no autorizado -> logout (por ahora simple)
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      const auth = useAuthStore()
-      auth.logout?.() // lo crearemos en el siguiente subpaso
-    }
-    return Promise.reject(error)
-  }
-)
 
 export default api
