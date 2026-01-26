@@ -34,6 +34,10 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // KPIs
             'kpis.view',
+
+            // Horarios / Slots
+            'schedules.view', 'schedules.create', 'schedules.update', 'schedules.delete',
+            'slots.view', 'slots.generate', 'slots.delete',
         ];
 
         foreach ($permissions as $perm) {
