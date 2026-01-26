@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50">
     <div class="w-full max-w-md bg-white p-6 rounded-xl shadow">
-      <h1 class="text-2xl font-bold mb-6 text-center">Iniciar sesión</h1>
+      <h1 class="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h1>
 
       <form @submit.prevent="onSubmit" class="space-y-4">
         <div>
@@ -11,6 +11,7 @@
             type="email"
             class="w-full border rounded p-2"
             placeholder="admin@vet.com"
+            autocomplete="username"
           />
         </div>
 
@@ -21,21 +22,22 @@
             type="password"
             class="w-full border rounded p-2"
             placeholder="********"
+            autocomplete="current-password"
           />
         </div>
 
         <button
           type="submit"
-          class="w-full bg-blue-600 text-white rounded p-2"
+          class="w-full bg-blue-600 text-white rounded p-2 disabled:opacity-60"
           :disabled="loading"
         >
           {{ loading ? "Ingresando..." : "Entrar" }}
         </button>
-      </form>
 
-      <p v-if="error" class="text-red-600 mt-4 text-sm text-center">
-        {{ error }}
-      </p>
+        <p v-if="error" class="text-red-600 mt-2 text-sm text-center">
+          {{ error }}
+        </p>
+      </form>
     </div>
   </div>
 </template>
@@ -43,9 +45,10 @@
 <script setup>
 import { reactive, ref } from "vue"
 import { useRouter } from "vue-router"
-import axios from "axios"
+import { useAuthStore } from "@/stores/auth"
 
 const router = useRouter()
+const auth = useAuthStore()
 
 const loading = ref(false)
 const error = ref("")
@@ -56,41 +59,16 @@ const form = reactive({
 })
 
 const onSubmit = async () => {
-  console.log("CLICK/SUBMIT OK ✅", { ...form })
-
-  error.value = ""
   loading.value = true
+  error.value = ""
 
   try {
-    const url = "http://127.0.0.1:8000/api/auth/login"
-    console.log("POST →", url)
-
-    const res = await axios.post(url, form, {
-      headers: { "Content-Type": "application/json" },
-    })
-
-    console.log("RESPUESTA ✅", res.data)
-
-    // ✅ Guardar token y rol
-    if (res.data?.access_token) {
-      localStorage.setItem("token", res.data.access_token)
-      localStorage.setItem("role", res.data.user?.role || "")
-    }
-
-    console.log("GUARDADO token?", !!localStorage.getItem("token"))
-    console.log("GUARDADO role:", localStorage.getItem("role"))
-
-    // ✅ Redirigir a dashboard (ruta ABSOLUTA)
-    // Opción A (por path):
-    router.push("/admin/dashboard")
-
-    // Opción B (por name, más seguro):
-    // router.push({ name: "admin.dashboard" })
+    await auth.login(form)
+    await auth.fetchMe() // ✅ aquí se cargan roles/permisos antes de entrar al admin
+    await router.push({ name: "admin.vets.index" })
   } catch (e) {
-    console.error("ERROR ❌", e)
     error.value =
       e?.response?.data?.message ||
-      `Error ${e?.response?.status || ""}` ||
       "Error al iniciar sesión"
   } finally {
     loading.value = false

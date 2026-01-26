@@ -10,6 +10,10 @@
         <router-link class="block px-2 py-1 rounded hover:bg-gray-800" to="/admin/veterinarios">
           Veterinarios
         </router-link>
+
+        <router-link class="block px-2 py-1 rounded hover:bg-gray-800" to="/admin/clientes">
+          Clientes
+        </router-link>
       </nav>
     </aside>
 

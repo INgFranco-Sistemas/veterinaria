@@ -7,6 +7,8 @@ export const useAuthStore = defineStore("auth", {
     token: localStorage.getItem("token") || null,
     roles: [],
     permissions: [],
+    loadingMe: false,
+    loadedMe: false,
   }),
 
   getters: {
@@ -27,33 +29,50 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("token")
       this.roles = []
       this.permissions = []
+      this.loadingMe = false
+      this.loadedMe = false
     },
 
     async login(credentials) {
-      const { data } = await api.post("/auth/login", credentials) // ✅
-      this.setToken(data.token)
-      this.user = data.user
+      const { data } = await api.post("/auth/login", credentials)
+
+      const token = data.token || data.access_token // ✅ soporta ambos
+      if (!token) throw new Error("No se recibió token en /auth/login")
+
+      this.setToken(token)
+      this.user = data.user || null
       return data
     },
 
     async fetchMe() {
-      const { data } = await api.get("/auth/me") // ✅
-      this.user = data.user
-      this.roles = data.roles || []
-      this.permissions = data.permissions || []
-      return data
+      if (!this.token) return
+      if (this.loadedMe || this.loadingMe) return
+
+      this.loadingMe = true
+      try {
+        const { data } = await api.get("/auth/me")
+
+        this.user = data.user || null
+        this.roles = data.roles || []
+        this.permissions = data.permissions || []
+
+        this.loadedMe = true
+        return data
+      } finally {
+        this.loadingMe = false
+      }
     },
 
     async refreshToken() {
-      const { data } = await api.post("/auth/refresh") // ✅
+      const { data } = await api.post("/auth/refresh")
       this.setToken(data.token)
-      this.user = data.user
+      this.user = data.user || this.user
       return data
     },
 
     async logout() {
       try {
-        await api.post("/auth/logout") // ✅
+        await api.post("/auth/logout")
       } finally {
         this.clearAuth()
       }

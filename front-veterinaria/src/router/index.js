@@ -1,13 +1,25 @@
 import { createRouter, createWebHistory } from "vue-router"
+import { useAuthStore } from "@/stores/auth"
 
+// Layouts
 import PublicLayout from "@/layouts/PublicLayout.vue"
 import AdminLayout from "@/layouts/AdminLayout.vue"
 
+// Public
 import Home from "@/modules/public/pages/Home.vue"
 import Login from "@/modules/auth/pages/Login.vue"
+
+// Admin
 import Dashboard from "@/modules/admin/dashboard/pages/Dashboard.vue"
+
+// Vets
 import VetsIndex from "@/modules/admin/vets/pages/VetsIndex.vue"
 import VetsForm from "@/modules/admin/vets/pages/VetsForm.vue"
+
+// Clients
+import ClientsIndex from "@/modules/admin/clients/pages/ClientsIndex.vue"
+import ClientsForm from "@/modules/admin/clients/pages/ClientsForm.vue"
+import ClientShow from "@/modules/admin/clients/pages/ClientShow.vue"
 
 const routes = [
   {
@@ -18,34 +30,22 @@ const routes = [
       { path: "login", name: "login", component: Login },
     ],
   },
+
   {
     path: "/admin",
     component: AdminLayout,
     meta: { requiresAuth: true, roles: ["admin"] },
     children: [
-      { 
-        path: "dashboard", 
-        name: "admin.dashboard", 
-        component: Dashboard 
-      },
-      {
-        path: 'veterinarios',
-        name: 'admin.vets.index',
-        component: VetsIndex,
-        meta: { requiresAuth: true, roles: ["admin"], permission: "vets.view" },
-      },
-      {
-        path: 'veterinarios/nuevo',
-        name: 'admin.vets.create',
-        component: VetsForm,
-        meta: { requiresAuth: true, roles: ["admin"], permission: "vets.create" },
-      },
-      {
-        path: 'veterinarios/:id/editar',
-        name: 'admin.vets.edit',
-        component: VetsForm,
-        meta: { requiresAuth: true, roles: ["admin"], permission: "vets.update" },
-      },
+      { path: "dashboard", name: "admin.dashboard", component: Dashboard },
+
+      { path: "veterinarios", name: "admin.vets.index", component: VetsIndex, meta: { permission: "vets.view" } },
+      { path: "veterinarios/nuevo", name: "admin.vets.create", component: VetsForm, meta: { permission: "vets.create" } },
+      { path: "veterinarios/:id/editar", name: "admin.vets.edit", component: VetsForm, meta: { permission: "vets.update" } },
+
+      { path: "clientes", name: "admin.clients.index", component: ClientsIndex, meta: { permission: "clients.view" } },
+      { path: "clientes/nuevo", name: "admin.clients.create", component: ClientsForm, meta: { permission: "clients.create" } },
+      { path: "clientes/:id/editar", name: "admin.clients.edit", component: ClientsForm, meta: { permission: "clients.update" } },
+      { path: "clientes/:id", name: "admin.clients.show", component: ClientShow, meta: { permission: "clients.view" } },
     ],
   },
 ]
@@ -55,20 +55,47 @@ const router = createRouter({
   routes,
 })
 
-// ✅ Guard global: protege /admin
-router.beforeEach((to) => {
-  const token = localStorage.getItem("token")
-  const role = localStorage.getItem("role")
+/**
+ * ✅ Guard global:
+ * - Si hay token y aún no cargó /me -> fetchMe() (roles/permissions)
+ * - Protege rutas con meta.requiresAuth
+ * - Bloquea por roles y permissions cuando aplique
+ */
+router.beforeEach(async (to) => {
+  const auth = useAuthStore()
 
-  console.log("[GUARD]", {
-    to: to.fullPath,
-    token: !!token,
-    role,
-  })
+  // Si tiene token, asegúrate de tener roles/permisos antes de entrar a admin
+  if (auth.token && !auth.loadedMe) {
+    try {
+      await auth.fetchMe()
+    } catch (e) {
+      auth.clearAuth()
+      return { name: "login" }
+    }
+  }
 
-  if (to.path.startsWith("/admin")) {
-    if (!token) return "/login"
-    if (role !== "admin") return "/"
+  // Rutas protegidas
+  if (to.meta?.requiresAuth && !auth.token) {
+    return { name: "login" }
+  }
+
+  // Si está logueado y va a /login, mándalo al dashboard
+  if (to.name === "login" && auth.token) {
+    return { name: "admin.dashboard" }
+  }
+
+  // Check roles (si la ruta lo pide)
+  if (to.meta?.roles?.length) {
+    const allowed = to.meta.roles.some((r) => auth.hasRole(r))
+    if (!allowed) return { name: "admin.dashboard" }
+  }
+
+  // Check permission (si la ruta lo pide)
+  if (to.meta?.permission) {
+    if (!auth.can(to.meta.permission)) {
+      return { name: "admin.dashboard" }
+    }
   }
 })
+
 export default router
