@@ -21,6 +21,8 @@ import ClientsIndex from "@/modules/admin/clients/pages/ClientsIndex.vue"
 import ClientsForm from "@/modules/admin/clients/pages/ClientsForm.vue"
 import ClientShow from "@/modules/admin/clients/pages/ClientShow.vue"
 
+import AgendaIndex from "@/modules/admin/agenda/pages/AgendaIndex.vue"
+
 const routes = [
   {
     path: "/",
@@ -46,6 +48,7 @@ const routes = [
       { path: "clientes/nuevo", name: "admin.clients.create", component: ClientsForm, meta: { permission: "clients.create" } },
       { path: "clientes/:id/editar", name: "admin.clients.edit", component: ClientsForm, meta: { permission: "clients.update" } },
       { path: "clientes/:id", name: "admin.clients.show", component: ClientShow, meta: { permission: "clients.view" } },
+      { path: "agenda", name: "admin.agenda.index", component: AgendaIndex, meta: { requiresAuth: true, roles: ["admin"], permission: "schedules.view" },},
     ],
   },
 ]
@@ -77,24 +80,6 @@ router.beforeEach(async (to) => {
   // Rutas protegidas
   if (to.meta?.requiresAuth && !auth.token) {
     return { name: "login" }
-  }
-
-  // Si está logueado y va a /login, mándalo al dashboard
-  if (to.name === "login" && auth.token) {
-    return { name: "admin.dashboard" }
-  }
-
-  // Check roles (si la ruta lo pide)
-  if (to.meta?.roles?.length) {
-    const allowed = to.meta.roles.some((r) => auth.hasRole(r))
-    if (!allowed) return { name: "admin.dashboard" }
-  }
-
-  // Check permission (si la ruta lo pide)
-  if (to.meta?.permission) {
-    if (!auth.can(to.meta.permission)) {
-      return { name: "admin.dashboard" }
-    }
   }
 })
 
