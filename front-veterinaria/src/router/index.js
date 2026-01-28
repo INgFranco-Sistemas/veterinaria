@@ -23,6 +23,9 @@ import ClientShow from "@/modules/admin/clients/pages/ClientShow.vue"
 
 import AgendaIndex from "@/modules/admin/agenda/pages/AgendaIndex.vue"
 
+import AppointmentsIndex from "@/modules/admin/appointments/pages/AppointmentsIndex.vue"
+import AppointmentsCreate from "@/modules/admin/appointments/pages/AppointmentsCreate.vue"
+
 const routes = [
   {
     path: "/",
@@ -48,7 +51,9 @@ const routes = [
       { path: "clientes/nuevo", name: "admin.clients.create", component: ClientsForm, meta: { permission: "clients.create" } },
       { path: "clientes/:id/editar", name: "admin.clients.edit", component: ClientsForm, meta: { permission: "clients.update" } },
       { path: "clientes/:id", name: "admin.clients.show", component: ClientShow, meta: { permission: "clients.view" } },
-      { path: "agenda", name: "admin.agenda.index", component: AgendaIndex, meta: { requiresAuth: true, roles: ["admin"], permission: "schedules.view" },},
+      { path: "agenda", name: "admin.agenda.index", component: AgendaIndex, meta: { requiresAuth: true, roles: ["admin"], permission: "schedules.view" }, },
+      { path: "citas", name: "admin.appointments.index", component: AppointmentsIndex, meta: { requiresAuth: true, roles: ["admin"], permission: "appointments.view" }, },
+      { path: "citas/nueva", name: "admin.appointments.create", component: AppointmentsCreate, meta: { requiresAuth: true, roles: ["admin"], permission: "appointments.create" }, },
     ],
   },
 ]

@@ -18,6 +18,10 @@
         <router-link class="block px-2 py-1 rounded hover:bg-gray-800" to="/admin/agenda">
           Agenda
         </router-link>
+
+        <router-link class="block px-2 py-1 rounded hover:bg-gray-800" to="/admin/citas">
+          Citas
+        </router-link>
       </nav>
     </aside>
 

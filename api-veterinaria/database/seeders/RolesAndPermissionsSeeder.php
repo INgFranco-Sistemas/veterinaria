@@ -38,6 +38,10 @@ class RolesAndPermissionsSeeder extends Seeder
             // Horarios / Slots
             'schedules.view', 'schedules.create', 'schedules.update', 'schedules.delete',
             'slots.view', 'slots.generate', 'slots.delete',
+
+            // Reservas (citas)
+            'appointments.view', 'appointments.create', 'appointments.update', 'appointments.cancel',
+
         ];
 
         foreach ($permissions as $perm) {

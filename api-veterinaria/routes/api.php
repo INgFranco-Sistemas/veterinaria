@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\PetController;
 use App\Http\Controllers\Api\VetScheduleController;
 use App\Http\Controllers\Api\AvailabilitySlotController;
+use App\Http\Controllers\Api\AppointmentController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -36,4 +37,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('slots', [AvailabilitySlotController::class, 'index']);
     Route::post('veterinarians/{veterinarian}/slots/generate', [AvailabilitySlotController::class, 'generate']);
     Route::delete('veterinarians/{veterinarian}/slots/delete-range', [AvailabilitySlotController::class, 'deleteRange']);
+
+    Route::apiResource('appointments', AppointmentController::class);
+    Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
 });
